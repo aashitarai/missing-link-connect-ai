@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { User, Building2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -73,7 +72,7 @@ const LoginModal = ({ show, onClose }: LoginModalProps) => {
         });
         
         handleClose();
-        navigate('/dashboard');
+        navigate('/welcome'); // Changed from '/dashboard' to '/welcome'
       } else {
         toast({
           variant: "destructive",

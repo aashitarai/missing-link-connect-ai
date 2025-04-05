@@ -1,11 +1,13 @@
+
 import React, { useState } from 'react';
-import { User, Building2 } from 'lucide-react';
+import { User, Building2, UserPlus } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface LoginModalProps {
   show: boolean;
@@ -18,7 +20,9 @@ const LoginModal = ({ show, onClose }: LoginModalProps) => {
   const [adminType, setAdminType] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<"login" | "register">("login");
 
   const adminTypes = [
     'Police',
@@ -40,6 +44,8 @@ const LoginModal = ({ show, onClose }: LoginModalProps) => {
     setAdminType('');
     setEmail('');
     setPassword('');
+    setConfirmPassword('');
+    setActiveTab("login");
     onClose();
   };
 
@@ -72,7 +78,8 @@ const LoginModal = ({ show, onClose }: LoginModalProps) => {
         });
         
         handleClose();
-        navigate('/welcome'); // Changed from '/dashboard' to '/welcome'
+        // Navigate to welcome page after successful login
+        navigate('/welcome');
       } else {
         toast({
           variant: "destructive",
@@ -83,22 +90,59 @@ const LoginModal = ({ show, onClose }: LoginModalProps) => {
     }, 1000);
   };
 
-  const handleRegister = () => {
-    // For now, we'll just show a toast notification
-    toast({
-      title: "Registration",
-      description: "Registration functionality will be implemented soon",
-    });
+  const handleRegister = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    setTimeout(() => {
+      setLoading(false);
+      
+      if (!email || !password || !confirmPassword) {
+        toast({
+          variant: "destructive",
+          title: "Registration failed",
+          description: "Please fill in all required fields",
+        });
+        return;
+      }
+      
+      if (password !== confirmPassword) {
+        toast({
+          variant: "destructive",
+          title: "Registration failed",
+          description: "Passwords do not match",
+        });
+        return;
+      }
+      
+      // In a real app, you would send this data to your backend
+      const userData = {
+        type: loginType,
+        email,
+        adminType: loginType === 'admin' ? adminType : null,
+        isLoggedIn: true
+      };
+      localStorage.setItem('user', JSON.stringify(userData));
+      
+      toast({
+        title: "Registration successful!",
+        description: "Your account has been created and you're now logged in.",
+      });
+      
+      handleClose();
+      navigate('/welcome');
+    }, 1000);
   };
 
-  return (
-    <Dialog open={show} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-center">Login / Register</DialogTitle>
-        </DialogHeader>
-        
-        {!loginType && (
+  // This is the type selection screen
+  if (!loginType) {
+    return (
+      <Dialog open={show} onOpenChange={handleClose}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-center">Login / Register</DialogTitle>
+          </DialogHeader>
+          
           <div className="space-y-4 py-4">
             <Button 
               onClick={() => handleLoginTypeSelect('user')}
@@ -115,13 +159,43 @@ const LoginModal = ({ show, onClose }: LoginModalProps) => {
               <Building2 className="mr-2" /> Admin Login
             </Button>
           </div>
-        )}
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
-        {loginType === 'user' && (
-          <div className="py-4">
-            <h3 className="text-xl font-semibold mb-4">User Login</h3>
-            <form onSubmit={handleLogin}>
-              <div className="space-y-4">
+  // After type selection, show login/register tabs
+  return (
+    <Dialog open={show} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-bold text-center">
+            {loginType === 'user' ? 'User' : 'Admin'} Account
+          </DialogTitle>
+        </DialogHeader>
+        
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "login" | "register")} className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsTrigger value="login">Login</TabsTrigger>
+            <TabsTrigger value="register">Register</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="login" className="space-y-4">
+            {loginType === 'admin' && (
+              <Select onValueChange={handleAdminTypeChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Admin Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {adminTypes.map((type) => (
+                    <SelectItem key={type} value={type}>{type}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            
+            {(loginType === 'user' || (loginType === 'admin' && adminType)) && (
+              <form onSubmit={handleLogin} className="space-y-4">
                 <Input
                   type="email" 
                   placeholder="Email" 
@@ -136,32 +210,19 @@ const LoginModal = ({ show, onClose }: LoginModalProps) => {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                 />
-                <div className="flex justify-between items-center pt-2">
-                  <Button 
-                    type="submit" 
-                    className="bg-blue-700 text-white hover:bg-blue-800"
-                    disabled={loading}
-                  >
-                    {loading ? "Logging in..." : "Login"}
-                  </Button>
-                  <Button 
-                    type="button" 
-                    variant="link" 
-                    onClick={handleRegister}
-                    className="text-blue-600 hover:underline"
-                  >
-                    Register
-                  </Button>
-                </div>
-              </div>
-            </form>
-          </div>
-        )}
-
-        {loginType === 'admin' && (
-          <div className="py-4">
-            <h3 className="text-xl font-semibold mb-4">Admin Login</h3>
-            <div className="space-y-4">
+                <Button 
+                  type="submit" 
+                  className="w-full bg-blue-700 text-white hover:bg-blue-800"
+                  disabled={loading}
+                >
+                  {loading ? "Logging in..." : "Login"}
+                </Button>
+              </form>
+            )}
+          </TabsContent>
+          
+          <TabsContent value="register" className="space-y-4">
+            {loginType === 'admin' && (
               <Select onValueChange={handleAdminTypeChange}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select Admin Type" />
@@ -172,45 +233,42 @@ const LoginModal = ({ show, onClose }: LoginModalProps) => {
                   ))}
                 </SelectContent>
               </Select>
-              
-              {adminType && (
-                <form onSubmit={handleLogin} className="space-y-4 pt-2">
-                  <Input
-                    type="email" 
-                    placeholder="Email" 
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                  <Input
-                    type="password" 
-                    placeholder="Password" 
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                  <div className="flex justify-between items-center pt-2">
-                    <Button 
-                      type="submit" 
-                      className="bg-blue-700 text-white hover:bg-blue-800"
-                      disabled={loading}
-                    >
-                      {loading ? "Logging in..." : "Login"}
-                    </Button>
-                    <Button 
-                      type="button" 
-                      variant="link" 
-                      onClick={handleRegister}
-                      className="text-blue-600 hover:underline"
-                    >
-                      Register
-                    </Button>
-                  </div>
-                </form>
-              )}
-            </div>
-          </div>
-        )}
+            )}
+            
+            {(loginType === 'user' || (loginType === 'admin' && adminType)) && (
+              <form onSubmit={handleRegister} className="space-y-4">
+                <Input
+                  type="email" 
+                  placeholder="Email" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+                <Input
+                  type="password" 
+                  placeholder="Password" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <Input
+                  type="password" 
+                  placeholder="Confirm Password" 
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                />
+                <Button 
+                  type="submit" 
+                  className="w-full bg-green-600 text-white hover:bg-green-700"
+                  disabled={loading}
+                >
+                  {loading ? "Creating Account..." : "Register"}
+                </Button>
+              </form>
+            )}
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );

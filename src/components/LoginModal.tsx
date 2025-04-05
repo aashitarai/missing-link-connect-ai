@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useNavigate } from "react-router-dom";
+import { toast } from "@/hooks/use-toast";
 
 interface LoginModalProps {
   show: boolean;
@@ -12,8 +14,12 @@ interface LoginModalProps {
 }
 
 const LoginModal = ({ show, onClose }: LoginModalProps) => {
+  const navigate = useNavigate();
   const [loginType, setLoginType] = useState<string | null>(null);
   const [adminType, setAdminType] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const adminTypes = [
     'Police',
@@ -33,11 +39,57 @@ const LoginModal = ({ show, onClose }: LoginModalProps) => {
   const handleClose = () => {
     setLoginType(null);
     setAdminType('');
+    setEmail('');
+    setPassword('');
     onClose();
   };
 
   const handleAdminTypeChange = (value: string) => {
     setAdminType(value);
+  };
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    // Simulate login process with setTimeout
+    setTimeout(() => {
+      setLoading(false);
+      
+      // In a real application, you would validate credentials with your backend
+      if (email && password) {
+        // Store user data in localStorage (in a real app, you'd use proper auth tokens)
+        const userData = {
+          type: loginType,
+          email,
+          adminType: loginType === 'admin' ? adminType : null,
+          isLoggedIn: true
+        };
+        localStorage.setItem('user', JSON.stringify(userData));
+        
+        toast({
+          title: "Login successful!",
+          description: `Welcome ${email}`,
+        });
+        
+        handleClose();
+        navigate('/dashboard');
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Login failed",
+          description: "Please fill in all required fields",
+        });
+      }
+    }, 1000);
+  };
+
+  const handleRegister = () => {
+    // For now, we'll just show a toast notification
+    toast({
+      title: "Registration",
+      description: "Registration functionality will be implemented soon",
+    });
   };
 
   return (
@@ -69,24 +121,38 @@ const LoginModal = ({ show, onClose }: LoginModalProps) => {
         {loginType === 'user' && (
           <div className="py-4">
             <h3 className="text-xl font-semibold mb-4">User Login</h3>
-            <form>
+            <form onSubmit={handleLogin}>
               <div className="space-y-4">
                 <Input
                   type="email" 
                   placeholder="Email" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
                 />
                 <Input
                   type="password" 
                   placeholder="Password" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
                 />
                 <div className="flex justify-between items-center pt-2">
                   <Button 
                     type="submit" 
                     className="bg-blue-700 text-white hover:bg-blue-800"
+                    disabled={loading}
                   >
-                    Login
+                    {loading ? "Logging in..." : "Login"}
                   </Button>
-                  <a href="#" className="text-blue-600 hover:underline">Register</a>
+                  <Button 
+                    type="button" 
+                    variant="link" 
+                    onClick={handleRegister}
+                    className="text-blue-600 hover:underline"
+                  >
+                    Register
+                  </Button>
                 </div>
               </div>
             </form>
@@ -109,23 +175,37 @@ const LoginModal = ({ show, onClose }: LoginModalProps) => {
               </Select>
               
               {adminType && (
-                <form className="space-y-4 pt-2">
+                <form onSubmit={handleLogin} className="space-y-4 pt-2">
                   <Input
                     type="email" 
                     placeholder="Email" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
                   />
                   <Input
                     type="password" 
                     placeholder="Password" 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
                   />
                   <div className="flex justify-between items-center pt-2">
                     <Button 
                       type="submit" 
                       className="bg-blue-700 text-white hover:bg-blue-800"
+                      disabled={loading}
                     >
-                      Login
+                      {loading ? "Logging in..." : "Login"}
                     </Button>
-                    <a href="#" className="text-blue-600 hover:underline">Register</a>
+                    <Button 
+                      type="button" 
+                      variant="link" 
+                      onClick={handleRegister}
+                      className="text-blue-600 hover:underline"
+                    >
+                      Register
+                    </Button>
                   </div>
                 </form>
               )}

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { MapPin, ShieldCheck, Bell, User, Building2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -88,12 +87,12 @@ const Index = () => {
         <div className="mt-12 mb-16">
           <div className="relative overflow-hidden rounded-lg shadow-xl h-[300px] md:h-[400px]">
             <img 
-              src="https://images.unsplash.com/photo-1603524538751-44330422ded0" 
-              alt="Family Reunion Moment" 
+              src="/lovable-uploads/35ab4d4b-855c-4c3c-8692-26e1bcfc0ffd.png" 
+              alt="Reconnecting Families" 
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
-              <p className="text-white text-2xl font-bold">Reuniting Families Through Technology</p>
+              <p className="text-white text-2xl font-bold">Reconnecting Families After a Crisis</p>
             </div>
           </div>
         </div>

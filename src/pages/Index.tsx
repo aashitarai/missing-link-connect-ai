@@ -88,8 +88,8 @@ const Index = () => {
         <div className="mt-12 mb-16">
           <div className="relative overflow-hidden rounded-lg shadow-xl h-[300px] md:h-[400px]">
             <img 
-              src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158" 
-              alt="Missing Persons Support" 
+              src="https://images.unsplash.com/photo-1603524538751-44330422ded0" 
+              alt="Family Reunion Moment" 
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
